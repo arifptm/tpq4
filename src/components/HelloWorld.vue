@@ -1,35 +1,42 @@
 <template>
   <v-container fluid>
-    <v-slide-y-transition mode="out-in">
-      <v-layout column align-center>
-        <img src="@/assets/logo.png" alt="Vuetify.js" class="mb-5">
-        <blockquote>
-          &#8220;First, solve the problem. Then, write the code.&#8221;
-          <footer>
-            <small>
-              <em>&mdash;John Johnson</em>
-            </small>
-          </footer>
-        </blockquote>
-      </v-layout>
-    </v-slide-y-transition>
+    <v-text-field
+      label="E-mail"
+      v-model="tes.email"
+      :error-messages="emailErrors"
+      @input="$v.tes.email.$touch()"
+      @blur="$v.tes.email.$touch()"
+    ></v-text-field>  
   </v-container>
 </template>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
+<script>
+  import { validationMixin } from 'vuelidate'
+  import { required, email } from 'vuelidate/lib/validators'
+
+  export default {
+    mixins: [validationMixin],
+
+    validations: {      
+      tes:{
+        email: { required, email },
+      }
+    },
+
+    data: () => ({
+      tes:{
+        email: '',
+      }
+    }),
+
+    computed: {
+      emailErrors () {
+        const errors = []
+        if (!this.$v.tes.email.$dirty) return errors
+        !this.$v.tes.email.email && errors.push('tidak valid')
+        !this.$v.tes.email.required && errors.push('harus diisi')
+        return errors
+      }
+    },
+  }
+</script>
