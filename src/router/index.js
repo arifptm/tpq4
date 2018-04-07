@@ -4,6 +4,7 @@ import HelloWorld from '@/components/HelloWorld'
 
 import Student from '@/components/student/Index'
 import ShowStudent from '@/components/student/Show'
+import StudentAchievement from '@/components/student/Achievement'
 
 Vue.use(Router)
 
@@ -23,6 +24,11 @@ export default new Router({
       path: '/students/:id',
       name: 'ShowStudent',
       component: ShowStudent
+    },
+    {
+      path: '/students/:id/achievement',
+      name: 'StudentAchievement',
+      component: StudentAchievement
     },
   ]
 })

@@ -3,21 +3,21 @@
     <v-flex xs12>
       <v-card>
       	<v-card-title primary-title class="title pb-1 pt-2">
-      			<v-text-field  label="Cari santri" v-model="keyword" persistent-hint hint="Tulis minimal 3 huruf"></v-text-field>     
+      			<v-text-field  :label="'Cari santri ('+students.total+')'" v-model="keyword" persistent-hint hint="Tulis minimal 3 huruf"></v-text-field>     
       			<v-spacer></v-spacer> 			
       		  <v-btn fab small right absolute color="green darken-1" class="white--text" @click="newStudent"> 
 	          <v-icon>add</v-icon>
           </v-btn>      		
       	</v-card-title>
-
+      	
         <v-list dense two-line>   
         	<template v-for="(student, index) in filteredStudents.data">
         	  <v-divider v-if='index == 0'></v-divider>
 
 	          <v-list-tile  :key="student.id" @click="">
 	            <v-list-tile-avatar>
-	              <img v-if="student.image" :src="$root.baseUrl+'/imgcc/small/'+student.image" :alt="student.nickname">
-	              <img v-else :src="$root.baseUrl+'/imgcc/small/'+student.gender+'-avatar.jpg'" :alt="student.gender">	              
+	              <img v-if="student.image" :src="$root.baseUrl+'/imgcc/small-sq/'+student.image" :alt="student.nickname">
+	              <img v-else :src="$root.baseUrl+'/imgcc/small-sq/'+student.gender+'-avatar.jpg'" :alt="student.gender">	              
 	            </v-list-tile-avatar>
 	            <v-list-tile-content>
 	              <v-list-tile-title v-html="student.fullname"></v-list-tile-title>
@@ -40,10 +40,10 @@
 			                <v-list-tile-title>Edit</v-list-tile-title>
 			              </v-list-tile>
 			              <v-list-tile>
-			                <v-list-tile-title>Non Aktifkan</v-list-tile-title>
+			                <v-list-tile-title @click="deactivateStudent(student)">Non Aktifkan</v-list-tile-title>
 			              </v-list-tile>
 			              <v-list-tile>
-			                <v-list-tile-title>Hapus</v-list-tile-title>
+			                <v-list-tile-title @click="deleteStudent(student)">Hapus</v-list-tile-title>
 			              </v-list-tile>
 				          </v-list>
       			    </v-menu>
@@ -55,7 +55,7 @@
         </v-list>
         <v-card-text>
         	<div class="text-xs-center">
-				    <v-pagination @input="next" color="green" :length="filteredStudents.last_page" v-model="filteredStudents.current_page" :total-visible="7"></v-pagination>
+				    <v-pagination @input="next" color="green" :length="filteredStudents.last_page" v-model="filteredStudents.current_page" :total-visible="5"></v-pagination>
 				  </div>
       	</v-card-text>
       </v-card>      
@@ -63,15 +63,15 @@
 
 
     <v-dialog v-model="dialog" fullscreen>
-    	<form>
+    	<form ref="form">
     	<v-card tile>    	
           <v-toolbar fixed dark color="green">
             <v-toolbar-title>{{ dialogTitle }}</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items>
-              <v-btn dark flat @click="storeStudent">Simpan</v-btn>
+              <v-btn :disabled="showCroppie" dark flat @click="storeStudent">Simpan</v-btn>
             </v-toolbar-items>
-            <v-btn icon @click="resetStudent" dark>
+            <v-btn icon @click="closeDialog()" dark>
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -93,7 +93,6 @@
                 :viewport= viewport
                 ref=croppieRef 
                 :enableOrientation="true"
-                @update="update"
                 >
             	</vue-croppie> 
             	
@@ -172,8 +171,11 @@
 
   import Vue from 'vue'
   import VueCroppie from 'vue-croppie'
+  import VueSweetalert2 from 'vue-sweetalert2';
+  
   Vue.use(VueCroppie)
   Vue.use(require('vue-moment'));
+	Vue.use(VueSweetalert2);
 
   import { validationMixin } from 'vuelidate'
   import { required, numeric } from 'vuelidate/lib/validators'
@@ -276,9 +278,9 @@
 	      val && this.$nextTick(() => (this.$refs.picker.activePicker = 'YEAR'))
 	    },
 
-			dialog (val) {
-        val || this.closeDialog()
-      },
+			// dialog (val) {
+   //      val || this.closeDialog()
+   //    },
 		
 			keyword(){
 				if (this.keyword.length > 2){
@@ -387,45 +389,94 @@
 				.catch((error)=>this.errors = error.response.data.errors)       			
   		},    		
 
-  		newStudent(){
+  		newStudent(){  			
+  			this.$v.student.$reset()
+  			this.cropieImage = ''			
   			this.dialog = true
-  			this.cropieImage = ''
   		},
-
-    	storeStudent(){
-    		this.$v.$touch()    		
-    		if (this.editedIndex > -1) {    			
-	    		this.axios.put('students/'+this.student.id, this.student)
-	    		.then(response=>{   
-	    			// console.log(response.data) 			
-	    			this.closeDialog()
-	    			Object.assign(this.students.data[this.editedIndex], response.data)	    			
-	    			// this.getStudents()
-	    			this.student = this.defStudent
-	    		})
-    		} else {
-	    		this.axios.post('students', this.student)	    		
-	    		.then(response=>{    			
-	    			this.closeDialog()
-	    			this.getStudents()
-	    			this.student = this.defStudent
-	    		})
-	    	}	    	
-    	},
 
     	editStudent(student){
     		this.editedIndex = this.students.data.indexOf(student)
     		this.student = Object.assign({}, student)
     		this.dialog = true
     		this.cropieImage = ''	
+    		// this.student.image=''
+    	},  		
+
+    	storeStudent(){
+    		this.$v.$touch()    		
+    		if (this.editedIndex > -1) {        			
+	    		this.axios.put('students/'+this.student.id, {student:this.student, image: this.cropieImage})
+	    		.then(response=>{   	    			
+	    			this.resetStudent()
+						this.closeDialog()	    			
+	    			Object.assign(this.students.data[this.editedIndex], response.data)
+	    		})
+    		} else {
+	    		this.axios.post('students', {student:this.student, image: this.cropieImage})
+	    		.then(response=>{    				    			
+	    			this.getStudents()
+	    			this.student = this.defStudent
+	    			this.closeDialog()
+	    		})
+	    	}	    	
+    	},
+
+    	deleteStudent(student){
+        this.$swal({
+          title: 'Yakin?',
+          text: 'Data yang dihapus tidak dapat dikembalikan..!',
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, hapus!',
+          cancelButtonText: 'Batalkan',
+          showCloseButton: true,
+        }).then((result) => {
+          if(result.value) {
+              this.axios.delete('students/'+student.id)
+              .then(response=>{
+                this.getStudents()
+              })
+            this.$swal({title:'Selesai', text:'Data berhasil dihapus..!', type:'success', showConfirmButton: false, timer: 1800})
+
+          }
+        })
+      },
+
+      deactivateStudent(student){
+        this.$swal({
+          title: 'Yakin?',
+          text: 'Status santri akan di set non-aktif!',
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Lanjutkan!',
+          cancelButtonText: 'Batalkan',
+          showCloseButton: true,
+        }).then((result) => {
+          if(result.value) {
+              this.axios.post('students/deactivate', student)
+              .then(response=>{
+                this.getStudents()
+                console.log(response.data)
+              })
+            this.$swal({title:'Selesai', text:'Status santri berhasil di-set non-aktif..!', type:'success', showConfirmButton: false, timer: 1800})
+
+          }
+        })
+      },
+
+    	closeDialog(){
+    		this.dialog = false
+    		this.resetStudent()
     	},
 
     	resetStudent(){
-    		if(this.editedIndex > -1 ){
+    		if(this.editedIndex > -1 ){    			
     			this.student = this.defStudent
-    		}
-    		this.dialog = false
-    		this.showCroppie = false
+    		}    		
+    		this.cropieImage = ''
+
+
     	},
 
     	inverseDate(dt){
@@ -451,12 +502,12 @@
         let options = {
           format: 'jpeg', 
           circle: false,
-          setZoom: 2
+          // setZoom: 2
         }          
         this.showCroppie = false
         this.$refs.croppieRef.result(options, (output) => {
           this.cropieImage = output
-          this.student.image = this.cropieImage
+          // this.student.image = this.cropieImage
         })                  
       },
 
@@ -467,10 +518,7 @@
 			saveBirthDate (date) {
 	     	this.$refs.menu2.save(date)
 			},
-
-			update(val) {
-        console.log(val);
-      },
+			
       rotate(rotationAngle) {
         this.$refs.croppieRef.rotate(rotationAngle);
       },
@@ -478,13 +526,13 @@
       	this.axios.get('students?page='+page)
       	.then((response)=>{this.students = this.filteredStudents = response.data})
       },
-      closeDialog () {
-        this.dialog = false
-        setTimeout(() => {
-          this.editedItem = Object.assign({}, this.student)
-          this.editedIndex = -1
-        }, 300)
-      },
+      // closeDialog () {
+      //   this.dialog = false
+      //   setTimeout(() => {
+      //     this.editedItem = Object.assign({}, this.student)
+      //     this.editedIndex = -1
+      //   }, 300)
+      // },
     }
 
   }

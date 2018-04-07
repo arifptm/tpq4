@@ -42,7 +42,7 @@
     
 
     <v-bottom-nav
-      absolute shift :value="true" color="grey darken-3"
+      fixed shift :value="true" color="grey darken-3"
       :active.sync="bottomNav"      
       class="hidden-md-and-up" >
       <v-btn dark v-for="(item, i) in items" :key="i" :value="item.title" :to="item.path">
