@@ -1,40 +1,9 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" enable-resize-watcher fixed app class="green darken-4">
-      <v-toolbar color="green darken-4">
-        <v-list>
-          <v-list-tile>
-            <v-list-tile-action>
-              <v-avatar>
-                <img src="http://i.pravatar.cc/300" alt="" />
-              </v-avatar>
-            </v-list-tile-action>
-            <v-list-tile-content class="green--text text--lighten-4 subheading">
-              <router-link to="/">Adminsitrator</router-link>
-            </v-list-tile-content>
-          </v-list-tile>          
-        </v-list>
-      </v-toolbar>
 
-      <v-list>
-        <v-list-tile v-for="(item, i) in items" :key="i" :to="item.path" color="white" active-class="green darken-3 yellow--text" >
-          <v-list-tile-action >
-            <v-icon v-html="item.icon" dark></v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title v-text="item.title"></v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
-    </v-navigation-drawer>
     
 
-    <v-toolbar app>
-      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>      
-      <v-toolbar-title>{{ this.$root.pageTitle }}</v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-icon>search</v-icon>
-    </v-toolbar>
+    
 
     <v-content>
       <router-view/>
@@ -65,7 +34,13 @@
 </template>
 
 <script>
+
+import Toolbar from '@/components/layout/Toolbar'
+
 export default {
+  
+  components: { Toolbar },
+
   name: 'App',
   data () {
     return {      

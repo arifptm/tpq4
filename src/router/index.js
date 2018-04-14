@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
 
 import Student from '@/components/student/Index'
+import StudentCreate from '@/components/student/Create'
 import ShowStudent from '@/components/student/Show'
 import StudentAchievement from '@/components/student/Achievement'
 
@@ -19,6 +20,11 @@ export default new Router({
       path: '/students',
       name: 'Student',
       component: Student
+    },
+    {
+      path: '/students/create',
+      name: 'StudentCreate',
+      component: StudentCreate
     },
     {
       path: '/students/:id',

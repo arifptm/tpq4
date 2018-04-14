@@ -9,6 +9,7 @@ import Vuelidate from 'vuelidate';
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 
+
 Vue.use(Vuetify)
 Vue.use(Vuelidate);
 Vue.use(VueAxios, axios)
